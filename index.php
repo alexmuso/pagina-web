@@ -1,3 +1,8 @@
+<?php
+session_start();
+?>
+
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -165,11 +170,14 @@
      
     <nav>
       <ul>
-        <li><a href="login.php">Administrador</a></li>
         <li><a href="#inicio">Inicio</a></li>
         <li><a href="#servicios">Servicios</a></li>
         <li><a href="#contacto">Contacto</a></li>
+        <li><a href="login.php">Inicio de Sesión</a></li>
       </ul>
+       
+       
+    
     </nav>
   </header>
 
@@ -183,7 +191,11 @@
       <i class="fa-solid fa-scissors"></i>
       <h3>Arreglos</h3>
       <p>Ajustamos tus prendas para que luzcan perfectas.</p>
-      <button onclick="window.location.href='formulario.php'">Agendar</button>
+    <button onclick="window.location.href='<?php echo isset($_SESSION['usuario_id']) ? "formulario.php" : "login.php?redir=formulario"; ?>'">
+    Agendar
+</button>
+
+
 
     </div>
     <div class="card">
@@ -198,7 +210,7 @@
 
       <h3>Accesorios</h3>
       <p>Bolsos y detalles únicos que acompañan tu estilo.</p>
-      <button onclick="window.location.href='formulario.php'">Agendar</button>
+     <button onclick="window.location.href='accesorios.php'">Comprar</button>
 
     </div>
   </section>

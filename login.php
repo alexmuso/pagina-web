@@ -2,23 +2,38 @@
 session_start();
 require_once "conexion.php";
 
+$error = "";
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $usuario = $_POST['usuario'];
-    $contrasena = md5($_POST['contrasena']);
+    $usuario_input = $_POST['usuario'];
+    $clave_input = $_POST['clave'];
+    $error = "Usuario o contraseña incorrectos";
 
-    $sql = "SELECT * FROM admin WHERE usuario = :usuario AND contrasena = :contrasena";
+    
+    $sql = "SELECT id, usuario, clave, rol FROM usuarios WHERE usuario = :usuario";
     $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':usuario', $usuario);
-    $stmt->bindParam(':contrasena', $contrasena);
+    $stmt->bindParam(':usuario', $usuario_input);
     $stmt->execute();
-
+    
+    
     if ($stmt->rowCount() > 0) {
-        $_SESSION['admin'] = $usuario;
-        header("Location: admin.php");
-        exit;
-    } else {
-        $error = "Usuario o contraseña incorrectos";
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        // Verificar la contraseña usando password_verify
+        if (password_verify($clave_input, $user['clave'])) {
+            // Contraseña correcta
+            if ($user['rol'] == 'admin') {
+                $_SESSION['admin'] = $user['usuario'];  
+                header("Location: admin_dashboard.php"); // Necesitarás crear este archivo
+            } else {
+                $_SESSION['usuario'] = $user['usuario'];
+                $_SESSION['usuario_id'] = $user['id'];
+                header("Location: mis_citas_pedidos.php"); // Redirige al inicio del cliente
+            }
+            exit;
+        }
     }
+    // Si la verificación falla o el usuario no existe, se muestra el error.
+    $error = "Usuario o contraseña incorrectos";
 }
 ?>
 
@@ -29,56 +44,68 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <title>Iniciar Sesión - Boutique</title>
   <style>
     body {
-      background: #f2f2f2;
       font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 0;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
+        background: url("img/patron.jfif") no-repeat center center fixed;
+      background-size: cover;
     }
     form {
       background: white;
-      padding: 30px;
-      border-radius: 10px;
+      padding: 20px;
+      width: 350px;
+      border-radius: 8px;
       box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
       text-align: center;
-      width: 300px;
     }
-    input {
+    form h2 {
+      margin-bottom: 15px;
+    }
+  .logo {
+      width: 100px;
+      margin-bottom: 15px;
+    }
+    form input, form select, form textarea {
       width: 90%;
-      padding: 10px;
-      margin: 10px 0;
+      padding: 8px;
+      margin: 8px 0;
+      border-radius: 5px;
       border: 1px solid #ccc;
-      border-radius: 5px;
+      font-size: 0.9em;
     }
-    button {
-      background: #e91e63;
+    form button {
+      background: #222;
       color: white;
-      padding: 10px 15px;
+      padding: 8px 14px;
       border: none;
-      border-radius: 5px;
       cursor: pointer;
+      border-radius: 5px;
+      font-size: 0.9em;
+      margin-top: 10px;
     }
-    button:hover {
-      background: #c2185b;
-    }
-    .error {
-      color: red;
-      margin-bottom: 10px;
+    form button:hover {
+      background: #444;
     }
   </style>
+
 </head>
 <body>
-  <form method="POST" action="">
+  <form method="POST" action="login.php">
     <h2>🔐 Iniciar Sesión</h2>
     <?php if (!empty($error)) echo "<p class='error'>$error</p>"; ?>
     <input type="text" name="usuario" placeholder="Usuario" required><br>
-    <input type="password" name="contrasena" placeholder="Contraseña" required><br>
+    <input type="password" name="clave" placeholder="Contraseña" required><br>
     <button type="submit">Entrar</button>
     <br>
     <br>
-<a href='index.php'>Volver al inicio</a>
-
+    <a href='registro.php'>¿No tienes cuenta? Regístrate aquí</a>
+    <br>
+    <a href='index.php'>Volver al inicio</a>
 </form>
 </body>
 </html>
