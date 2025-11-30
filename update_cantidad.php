@@ -9,3 +9,5 @@ if ($cantidad > 0) {
 }
 
 header("Location: carrito.php");
+exit;
+?>
