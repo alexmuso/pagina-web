@@ -1,13 +1,7 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['rol'])) {
-    echo "Acceso denegado";
-    exit;
-}
-
-
-if ($_SESSION['rol'] !== 'admin') {
+if (!isset($_SESSION['rol']) || $_SESSION['rol'] !== 'admin') {
     echo "Acceso denegado";
     exit;
 }

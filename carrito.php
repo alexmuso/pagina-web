@@ -1,6 +1,19 @@
 <?php
 session_start();
 
+include "conexion.php";
+
+// Cargar productos desde BD
+$sql = $conn->query("SELECT id, nombre, precio FROM accesorios");
+$productos = [];
+while ($row = $sql->fetch(PDO::FETCH_ASSOC)) {
+    $productos[$row["id"]] = [
+        "nombre" => $row["nombre"],
+        "precio" => $row["precio"]
+    ];
+}
+
+
 if (!isset($_SESSION["usuario_id"])) {
     header("Location: login.php?redir=carrito");
     exit;
@@ -53,13 +66,16 @@ if (isset($_GET["comprar"]) && !empty($carrito)) {
     $compra_id = $conn->lastInsertId();
 
     foreach ($carrito as $id => $cant) {
-        $sql2 = "INSERT INTO compras_detalle(compra_id, producto, cantidad, precio) VALUES (?, ?, ?, ?)";
-        $stmt2 = $conn->prepare($sql2);
-        $stmt2->execute([$compra_id, $productos[$id]["nombre"], $cant, $productos[$id]["precio"]]);
+    $sql2 = "INSERT INTO compras_detalle(compra_id, producto_id, cantidad, precio) VALUES (?, ?, ?, ?)";
+    $stmt2 = $conn->prepare($sql2);
+    $stmt2->execute([$compra_id, $id, $cant, $productos[$id]["precio"]]);
+
     }
 
     $_SESSION["carrito"] = [];
-    $mensajeCompra = "✔ Compra realizada con éxito";
+    header("Location: factura.php?id=$compra_id");
+exit;
+
 }
 
 ?>
