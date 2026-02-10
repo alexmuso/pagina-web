@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agendar Cita - Boutique</title>
+  <title>Agendar Cita - Felicias</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -24,6 +24,16 @@
       border-radius: 8px;
       box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
       text-align: center;
+    }
+    .volver {
+      display: inline-block;
+      margin-top: 14px;
+      color: #444;
+      font-size: 0.9em;
+      text-decoration: none;
+    }
+    .volver:hover {
+      text-decoration: underline;
     }
     form h2 {
       margin-bottom: 15px;
@@ -60,17 +70,18 @@
   <form>
     <img src="img/logo.jpeg" alt="Logo Boutique" class="logo">
     <h2>Agendar Cita</h2>
-    <input type="text" placeholder="Nombre" required>
-    <input type="text" placeholder="Apellido" required>
-    <input type="email" placeholder="Correo electrónico" required>
-    <input type="tel" placeholder="Teléfono" required>
-    <label>¿Dónde quieres tu cita?</label>
-    <select>
+    <input type="text" name="nombre" placeholder="Nombre" required>
+    <input type="text" name="apellido" placeholder="Apellido" required>
+    <input type="email" name="correo" placeholder="Correo electrónico" required>
+    <input type="tel" name="telefono" placeholder="Teléfono" required>
+    <label for="lugar">¿Dónde quieres tu cita?</label>
+    <select id="lugar" name="lugar">
       <option value="local">En el local</option>
       <option value="domicilio">A domicilio</option>
     </select>
-    <textarea placeholder="Descripción de lo que necesitas"></textarea>
+    <textarea name="descripcion" placeholder="Descripción de lo que necesitas"></textarea>
     <button type="submit">Enviar</button>
+    <a href="index.html" class="volver">Volver al inicio</a>
   </form>
 
 </body>
