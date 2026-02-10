@@ -6,163 +6,12 @@
   <title>Boutique Elegante</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="icon" href="img/logo.jpeg" type="image/x-icon">
-  <style>
-    body {
-      font-family: 'Georgia', serif;
-      margin: 0;
-      padding: 0;
-      background: #f5f5f5;
-      color: #333;
-    }
-
-    /* Header */
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px 40px;
-      background: white;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    header h1 {
-      font-family: "Brush Script MT", cursive;
-      font-size: 28px;
-      font-weight: normal;
-      color: #444;
-      flex-grow: 1;
-    }
-
-     header img {
-      height: 60px; /* ajusta el tamaño del logo */
-      margin-right: 15px;
-    }
-    nav ul {
-      list-style: none;
-      display: flex;
-      gap: 20px;
-      margin: 0;
-      padding: 0;
-    }
-    nav a {
-      text-decoration: none;
-      color: #444;
-      font-size: 16px;
-    }
-    nav a:hover {
-      color: #e91e63;
-    }
-
-    /* Banner */
-    .banner {
-      position: relative;
-      background: url("img/mujer.jfif") no-repeat center center/cover;
-      height: 400px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
-    }
-
-    .banner::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.4); /* oscurece ligeramente la imagen */
-  z-index: 0;
-}
-
-.banner * {
-  position: relative;
-  z-index: 1;
-}
-
-    .banner h2 {
-      font-size: 40px;
-      font-weight: normal;
-      margin-bottom: 20px;
-    }
-    .banner button {
-      background: #e91e63;
-      border: none;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 6px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .banner button:hover {
-      background: #c2185b;
-    }
-
-    /* Servicios */
-    .servicios {
-      padding: 50px 20px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-    }
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      transition: transform 0.3s;
-    }
-    .card:hover {
-      transform: translateY(-5px);
-    }
-    .card i {
-      font-size: 40px;
-      margin-bottom: 10px;
-      color: #000;
-    }
-    .card h3 {
-      font-size: 18px;
-      margin: 10px 0;
-      font-weight: normal;
-    }
-    .card p {
-      font-size: 14px;
-      margin-bottom: 15px;
-    }
-    .card button {
-      background: #e91e63;
-      border: none;
-      color: white;
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-size: 14px;
-      cursor: pointer;
-    }
-    .card button:hover {
-      background: #c2185b;
-    }
-
-    /* Footer */
-    footer {
-      background: #222;
-      color: white;
-      text-align: center;
-      padding: 20px;
-      margin-top: 40px;
-    }
-    footer i {
-      margin-right: 8px;
-      color: #e91e63;
-    }
-  </style>
+  <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
   <header>
-  <img src="img/logo.jpeg" alt="Logo Boutique">
-    <h1>Arreglos y Confeciones Felicias </h1>
-     
+    <img src="img/logo.jpeg" alt="Logo Boutique">
+    <h1>Arreglos y confecciones Felicias</h1>
     <nav>
       <ul>
         <li><a href="login.php">Administrador</a></li>
@@ -174,7 +23,7 @@
   </header>
 
   <section class="banner" id="inicio">
-    <h2>Bienvenidos </h2>
+    <h2>Bienvenidos</h2>
     <p><em>Tu espacio de confianza para transformar, confeccionar y dar vida a tus prendas con un servicio hecho a tu medida.</em></p>
   </section>
 
@@ -184,22 +33,18 @@
       <h3>Arreglos</h3>
       <p>Ajustamos tus prendas para que luzcan perfectas.</p>
       <button onclick="window.location.href='formulario.php'">Agendar</button>
-
     </div>
     <div class="card">
       <i class="fa-solid fa-shirt"></i>
       <h3>Confección</h3>
       <p>Diseños personalizados hechos a tu medida.</p>
       <button onclick="window.location.href='formulario.php'">Agendar</button>
-
     </div>
     <div class="card">
-      <i class="fa-solid fa-gem"></i>  <!-- Accesorios (ejemplo: un diamante) -->
-
+      <i class="fa-solid fa-gem"></i>
       <h3>Accesorios</h3>
       <p>Bolsos y detalles únicos que acompañan tu estilo.</p>
       <button onclick="window.location.href='formulario.php'">Agendar</button>
-
     </div>
   </section>
 
@@ -210,6 +55,3 @@
   </footer>
 </body>
 </html>
-
-
-
