@@ -1,14 +1,27 @@
 <?php
-require_once "conexion.php";
+require_once 'auth.php';
+require_admin_session();
+require_once 'conexion.php';
 
-if (isset($_GET['id'])) {
-    $id = $_GET['id'];
-    $sql = "DELETE FROM citas WHERE id = :id";
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: admin.php');
+    exit;
+}
+
+if (!validate_csrf_token($_POST['csrf_token'] ?? null)) {
+    http_response_code(403);
+    echo 'Token CSRF inválido.';
+    exit;
+}
+
+$id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+if ($id !== false && $id !== null) {
+    $sql = 'DELETE FROM citas WHERE id = :id';
     $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':id', $id);
+    $stmt->bindParam(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
 }
 
-header("Location: ver_citas.php");
+header('Location: admin.php');
 exit;
 ?>

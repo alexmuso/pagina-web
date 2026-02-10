@@ -1,0 +1,78 @@
+body {
+  font-family: Georgia, serif;
+  background: #f5f5f5;
+  color: #333;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  background: #222;
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+h1 {
+  font-family: 'Brush Script MT', cursive;
+  font-size: 32px;
+  margin: 0;
+}
+
+table {
+  width: 90%;
+  margin: 30px auto;
+  border-collapse: collapse;
+  background: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+
+th {
+  background: #e91e63;
+  color: white;
+}
+
+tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+.acciones form {
+  margin: 0;
+}
+
+.delete-button {
+  color: #e91e63;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  color: #c2185b;
+}
+
+.boton {
+  display: inline-block;
+  background: #e91e63;
+  color: white;
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  margin: 10px;
+}
+
+.boton:hover {
+  background: #c2185b;
+}
+
+.acciones-globales {
+  text-align: center;
+  margin-bottom: 30px;
+}
