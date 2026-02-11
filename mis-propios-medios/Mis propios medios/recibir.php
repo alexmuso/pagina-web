@@ -20,6 +20,7 @@ $documento = trim($_POST['documento'] ?? '');
 $nombre = trim($_POST['nombre'] ?? '');
 $apellido = trim($_POST['apellido'] ?? '');
 $correo = trim($_POST['correo'] ?? '');
+$clave = (string) ($_POST['clave'] ?? '');
 $telefono = trim($_POST['telefono'] ?? '');
 $lugar = trim($_POST['lugar'] ?? '');
 $descripcion = trim($_POST['descripcion'] ?? '');
@@ -39,6 +40,9 @@ if (!preg_match('/^[\p{L} ]{2,60}$/u', $apellido)) {
 }
 if (!filter_var($correo, FILTER_VALIDATE_EMAIL) || strlen($correo) > 120) {
     $errores[] = 'Correo electrónico inválido.';
+}
+if (strlen($clave) < 6 || strlen($clave) > 60) {
+    $errores[] = 'La contraseña debe tener entre 6 y 60 caracteres.';
 }
 if (!preg_match('/^[0-9+\- ]{7,20}$/', $telefono)) {
     $errores[] = 'Teléfono inválido.';
@@ -109,8 +113,7 @@ try {
             if ($existente) {
                 $mensajeCuenta = ' Ya existe una cuenta relacionada. Puedes iniciar sesión con tu usuario actual.';
             } else {
-                $claveTemporalPlano = $documento;
-                $claveTemporalHash = password_hash($claveTemporalPlano, PASSWORD_DEFAULT);
+                $claveTemporalHash = password_hash($clave, PASSWORD_DEFAULT);
                 $nombreCompleto = trim($nombre . ' ' . $apellido);
                 $rol = 'cliente';
 
@@ -123,7 +126,7 @@ try {
                 $stmtUsuario->bindParam(':rol', $rol);
                 $stmtUsuario->execute();
 
-                $mensajeCuenta = ' Usuario creado: ' . $usuarioGenerado . '. Contraseña temporal: tu número de documento. Inicia sesión y cámbiala luego.';
+                $mensajeCuenta = ' Usuario creado: ' . $usuarioGenerado . '. Ya puedes iniciar sesión con la clave registrada en el formulario.';
             }
         } catch (PDOException $e) {
             $mensajeCuenta = ' No fue posible crear la cuenta automáticamente, pero tu cita sí quedó registrada.';

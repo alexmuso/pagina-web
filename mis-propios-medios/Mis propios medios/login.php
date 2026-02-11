@@ -141,6 +141,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link rel="stylesheet" href="css/login.css">
 </head>
 <body>
+  <header class="site-header">
+    <img src="img/logo.jpeg" alt="Logo Boutique">
+    <h1>Arreglos y confecciones Felicias</h1>
+    <nav><ul><li><a href="index.php">Inicio</a></li><li><a href="formulario.php">Agendar</a></li></ul></nav>
+  </header>
+  <main class="login-wrap">
   <form method="POST" action="">
     <h2>🔐 Iniciar sesión</h2>
 
@@ -164,5 +170,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <button type="submit">Entrar</button>
     <a href="index.php">Volver al inicio</a>
   </form>
+  </main>
+  <footer class="site-footer" id="contacto">
+    <p><i>📍</i> Calle 123, Bogotá</p>
+    <p><i>📞</i> +57 300 123 4567</p>
+    <p><i>✉️</i> contacto@mi-boutique.com</p>
+  </footer>
 </body>
 </html>

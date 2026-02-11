@@ -9,13 +9,20 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #1f2937;
-  color: #fff;
-  padding: 14px 20px;
+  padding: 15px 40px;
+  background: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.topbar h1 {
+  font-family: 'Brush Script MT', cursive;
+  font-size: 28px;
+  font-weight: normal;
+  color: #444;
 }
 
 .topbar a {
-  color: #fff;
+  color: #444;
   text-decoration: none;
   margin-left: 14px;
 }
@@ -166,4 +173,12 @@ th {
 
 .nota {
   color: #374151;
+}
+
+.site-footer {
+  background: #222;
+  color: white;
+  text-align: center;
+  padding: 20px;
+  margin-top: 40px;
 }

@@ -113,5 +113,10 @@ $fecha = date('Y-m-d H:i:s');
       </div>
     <?php endif; ?>
   </main>
+  <footer class="site-footer" id="contacto">
+    <p><i>📍</i> Calle 123, Bogotá</p>
+    <p><i>📞</i> +57 300 123 4567</p>
+    <p><i>✉️</i> contacto@mi-boutique.com</p>
+  </footer>
 </body>
 </html>

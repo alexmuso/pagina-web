@@ -1,10 +1,51 @@
 body {
-  background: #f2f2f2;
+  margin: 0;
   font-family: Arial, sans-serif;
+  background: #f2f2f2;
+  color: #333;
+}
+
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 40px;
+  background: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.site-header h1 {
+  font-family: 'Brush Script MT', cursive;
+  font-size: 28px;
+  font-weight: normal;
+  color: #444;
+  flex-grow: 1;
+}
+
+.site-header img {
+  height: 60px;
+  margin-right: 15px;
+}
+
+.site-header ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+}
+
+.site-header a {
+  text-decoration: none;
+  color: #444;
+}
+
+.login-wrap {
+  min-height: calc(100vh - 220px);
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  padding: 20px;
 }
 
 form {
@@ -13,7 +54,35 @@ form {
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   text-align: center;
-  width: 300px;
+  width: 320px;
+}
+
+.tipo-acceso {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.tipo-acceso a {
+  text-decoration: none;
+  color: #555;
+  border: 1px solid #ddd;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.tipo-acceso a.activo {
+  background: #e91e63;
+  color: #fff;
+  border-color: #e91e63;
+}
+
+.subtitulo {
+  margin: 10px 0 0;
+  color: #555;
+  font-size: 14px;
 }
 
 .tipo-acceso {
@@ -71,7 +140,14 @@ button:hover {
   margin-bottom: 10px;
 }
 
-a {
+form > a {
   display: inline-block;
   margin-top: 16px;
+}
+
+.site-footer {
+  background: #222;
+  color: white;
+  text-align: center;
+  padding: 20px;
 }
