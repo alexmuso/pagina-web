@@ -8,6 +8,9 @@ $csrf = csrf_token();
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
+if (!isset($_SESSION['cart_snapshot'])) {
+    $_SESSION['cart_snapshot'] = [];
+}
 
 $mensaje = '';
 
@@ -20,11 +23,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($accion === 'eliminar' && $id) {
             unset($_SESSION['cart'][$id]);
+            unset($_SESSION['cart_snapshot'][$id]);
             $mensaje = 'Producto eliminado del carrito.';
         }
 
         if ($accion === 'vaciar') {
             $_SESSION['cart'] = [];
+            $_SESSION['cart_snapshot'] = [];
             $mensaje = 'Carrito vaciado.';
         }
     }
@@ -33,26 +38,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $ids = array_keys($_SESSION['cart']);
 $items = [];
 $total = 0;
+$rowsById = [];
 
 if (count($ids) > 0) {
-    $placeholders = implode(',', array_fill(0, count($ids), '?'));
-    $sql = "SELECT id, nombre, precio FROM accesorios WHERE id IN ($placeholders)";
-    $stmt = $conn->prepare($sql);
-    $stmt->execute($ids);
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    try {
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $sql = "SELECT id, nombre, precio FROM accesorios WHERE id IN ($placeholders)";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($ids);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    foreach ($rows as $row) {
-        $id = (int) $row['id'];
+        foreach ($rows as $row) {
+            $rowsById[(int) $row['id']] = $row;
+        }
+    } catch (PDOException $e) {
+        $mensaje = 'No fue posible consultar accesorios en base de datos. Mostrando datos guardados del carrito.';
+    }
+
+    foreach ($ids as $idCart) {
+        $id = (int) $idCart;
         $cantidad = (int) ($_SESSION['cart'][$id] ?? 0);
         if ($cantidad <= 0) {
             continue;
         }
-        $subtotal = $cantidad * (float) $row['precio'];
+
+        if (isset($rowsById[$id])) {
+            $nombre = (string) $rowsById[$id]['nombre'];
+            $precio = (float) $rowsById[$id]['precio'];
+        } else {
+            $snapshot = $_SESSION['cart_snapshot'][$id] ?? null;
+            if (!is_array($snapshot)) {
+                continue;
+            }
+            $nombre = (string) ($snapshot['nombre'] ?? 'Producto');
+            $precio = (float) ($snapshot['precio'] ?? 0);
+        }
+
+        $subtotal = $cantidad * $precio;
         $total += $subtotal;
         $items[] = [
             'id' => $id,
-            'nombre' => $row['nombre'],
-            'precio' => (float) $row['precio'],
+            'nombre' => $nombre,
+            'precio' => $precio,
             'cantidad' => $cantidad,
             'subtotal' => $subtotal,
         ];

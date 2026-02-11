@@ -8,6 +8,9 @@ $csrf = csrf_token();
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
+if (!isset($_SESSION['cart_snapshot'])) {
+    $_SESSION['cart_snapshot'] = [];
+}
 
 $mensaje = '';
 
@@ -23,6 +26,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['cart'][$id] = 0;
             }
             $_SESSION['cart'][$id] += $cantidad;
+
+            $nombreItem = trim((string) ($_POST['nombre'] ?? 'Producto'));
+            $precioItem = filter_input(INPUT_POST, 'precio', FILTER_VALIDATE_FLOAT);
+
+            if ($precioItem !== false && $precioItem !== null && $precioItem >= 0) {
+                $_SESSION['cart_snapshot'][$id] = [
+                    'nombre' => $nombreItem !== '' ? $nombreItem : 'Producto',
+                    'precio' => (float) $precioItem,
+                ];
+            }
+
             $mensaje = 'Accesorio agregado al carrito.';
         } else {
             $mensaje = 'Datos inválidos para agregar al carrito.';
@@ -129,6 +143,8 @@ function resolverImagenAccesorio(array $item, array $imagenesPorDefecto): string
         <form method="POST" action="">
           <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
           <input type="hidden" name="id" value="<?= e((string) $item['id']) ?>">
+          <input type="hidden" name="nombre" value="<?= e((string) $item['nombre']) ?>">
+          <input type="hidden" name="precio" value="<?= e((string) $item['precio']) ?>">
           <label>Cantidad</label>
           <input type="number" name="cantidad" min="1" max="10" value="1" required <?= $stock <= 0 ? 'disabled' : '' ?>>
           <button type="submit" <?= $stock <= 0 ? 'disabled' : '' ?>>Agregar al carrito</button>
