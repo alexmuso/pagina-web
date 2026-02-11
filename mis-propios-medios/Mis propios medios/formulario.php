@@ -47,6 +47,14 @@ unset($_SESSION['form_errors'], $_SESSION['success_message']);
       <option value="domicilio" <?= (($old['lugar'] ?? '') === 'domicilio') ? 'selected' : '' ?>>A domicilio</option>
     </select>
 
+
+    <label for="servicio">Servicio</label>
+    <select name="servicio" id="servicio" required>
+      <option value="arreglo" <?= (($old['servicio'] ?? '') === 'arreglo') ? 'selected' : '' ?>>Arreglo</option>
+      <option value="confeccion" <?= (($old['servicio'] ?? '') === 'confeccion') ? 'selected' : '' ?>>Confección</option>
+      <option value="accesorios" <?= (($old['servicio'] ?? '') === 'accesorios') ? 'selected' : '' ?>>Accesorios</option>
+    </select>
+
     <textarea name="descripcion" placeholder="Descripción de lo que necesitas"><?= e((string)($old['descripcion'] ?? '')) ?></textarea>
 
     <button type="submit">Enviar</button>

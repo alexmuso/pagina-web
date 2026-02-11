@@ -23,6 +23,7 @@ $correo = trim($_POST['correo'] ?? '');
 $telefono = trim($_POST['telefono'] ?? '');
 $lugar = trim($_POST['lugar'] ?? '');
 $descripcion = trim($_POST['descripcion'] ?? '');
+$servicio = trim($_POST['servicio'] ?? '');
 
 $errores = [];
 
@@ -44,6 +45,9 @@ if (!preg_match('/^[0-9+\- ]{7,20}$/', $telefono)) {
 if (!in_array($lugar, ['local', 'domicilio'], true)) {
     $errores[] = 'Lugar de cita inválido.';
 }
+if (!in_array($servicio, ['arreglo', 'confeccion', 'accesorios'], true)) {
+    $errores[] = 'Servicio inválido.';
+}
 if (strlen($descripcion) > 500) {
     $errores[] = 'La descripción no debe superar 500 caracteres.';
 }
@@ -56,8 +60,8 @@ if (!empty($errores)) {
 }
 
 try {
-    $sql = 'INSERT INTO citas (documento, nombre, apellido, correo, telefono, lugar, descripcion)
-            VALUES (:documento, :nombre, :apellido, :correo, :telefono, :lugar, :descripcion)';
+    $sql = 'INSERT INTO citas (documento, nombre, apellido, correo, telefono, lugar, descripcion, servicio)
+            VALUES (:documento, :nombre, :apellido, :correo, :telefono, :lugar, :descripcion, :servicio)';
     $stmt = $conn->prepare($sql);
 
     $stmt->bindParam(':documento', $documento);
@@ -67,6 +71,7 @@ try {
     $stmt->bindParam(':telefono', $telefono);
     $stmt->bindParam(':lugar', $lugar);
     $stmt->bindParam(':descripcion', $descripcion);
+    $stmt->bindParam(':servicio', $servicio);
 
     $stmt->execute();
 
