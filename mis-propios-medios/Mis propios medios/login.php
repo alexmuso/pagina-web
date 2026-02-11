@@ -6,78 +6,55 @@ ensure_session_started();
 $csrf = csrf_token();
 
 /**
- * @return array{table:string,user_column:string,pass_column:string,id_column:string,extra_where:string}|null
+ * Devuelve la configuración de autenticación detectada en la BD o null si no hay una válida.
  */
-function resolveAuthSource(PDO $conn): ?array
+function detect_auth_source($conn)
 {
-    $database = $conn->query('SELECT DATABASE()')->fetchColumn();
-    if (!is_string($database) || $database === '') {
-        return null;
-    }
+    $candidates = [
+        ['table' => 'admin', 'user_col' => 'usuario', 'pass_col' => 'contrasena', 'id_col' => 'id', 'where' => ''],
+        ['table' => 'admin', 'user_col' => 'usuario', 'pass_col' => 'clave', 'id_col' => 'id', 'where' => ''],
+        ['table' => 'usuarios', 'user_col' => 'usuario', 'pass_col' => 'clave', 'id_col' => 'id', 'where' => " AND rol = 'admin'"],
+        ['table' => 'usuarios', 'user_col' => 'usuario', 'pass_col' => 'clave', 'id_col' => 'id', 'where' => ''],
+    ];
 
-    $existsStmt = $conn->prepare(
-        'SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = :db AND table_name = :table'
-    );
+    foreach ($candidates as $source) {
+        $probeSql = sprintf(
+            'SELECT %s, %s FROM %s WHERE 1=0 LIMIT 1',
+            $source['user_col'],
+            $source['pass_col'],
+            $source['table']
+        );
 
-    $columnStmt = $conn->prepare(
-        'SELECT COUNT(*) FROM information_schema.columns
-         WHERE table_schema = :db AND table_name = :table AND column_name = :column'
-    );
-
-    $tableExists = function (string $table) use ($existsStmt, $database): bool {
-        $existsStmt->execute([':db' => $database, ':table' => $table]);
-        return (int) $existsStmt->fetchColumn() > 0;
-    };
-
-    $columnExists = function (string $table, string $column) use ($columnStmt, $database): bool {
-        $columnStmt->execute([':db' => $database, ':table' => $table, ':column' => $column]);
-        return (int) $columnStmt->fetchColumn() > 0;
-    };
-
-    if ($tableExists('admin')) {
-        $passColumn = $columnExists('admin', 'contrasena') ? 'contrasena' : ($columnExists('admin', 'clave') ? 'clave' : null);
-        if ($passColumn !== null) {
-            return [
-                'table' => 'admin',
-                'user_column' => 'usuario',
-                'pass_column' => $passColumn,
-                'id_column' => 'id',
-                'extra_where' => '',
-            ];
+        try {
+            $conn->query($probeSql);
+            return $source;
+        } catch (PDOException $e) {
+            // Intentar siguiente esquema.
         }
-
-    if ($tableExists('usuarios') && $columnExists('usuarios', 'usuario') && $columnExists('usuarios', 'clave')) {
-        $extra = $columnExists('usuarios', 'rol') ? ' AND rol = "admin"' : '';
-        return [
-            'table' => 'usuarios',
-            'user_column' => 'usuario',
-            'pass_column' => 'clave',
-            'id_column' => 'id',
-            'extra_where' => $extra,
-        ];
     }
 
     return null;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!validate_csrf_token($_POST['csrf_token'] ?? null)) {
+    if (!validate_csrf_token(isset($_POST['csrf_token']) ? $_POST['csrf_token'] : null)) {
         http_response_code(403);
         $error = 'Sesión inválida. Recarga la página e inténtalo de nuevo.';
     } else {
-        $usuario = trim($_POST['usuario'] ?? '');
-        $contrasena = $_POST['contrasena'] ?? '';
+        $usuario = trim(isset($_POST['usuario']) ? $_POST['usuario'] : '');
+        $contrasena = isset($_POST['contrasena']) ? $_POST['contrasena'] : '';
 
         try {
-            $source = resolveAuthSource($conn);
+            $source = detect_auth_source($conn);
+
             if ($source === null) {
                 $error = 'No se encontró una tabla de usuarios administradores. Verifica la base de datos.';
             } else {
                 $sql = sprintf(
                     'SELECT * FROM %s WHERE %s = :usuario%s LIMIT 1',
                     $source['table'],
-                    $source['user_column'],
-                    $source['extra_where']
+                    $source['user_col'],
+                    $source['where']
                 );
 
                 $stmt = $conn->prepare($sql);
@@ -88,34 +65,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $credenciales_validas = false;
 
                 if ($admin) {
-                    $hashGuardado = (string) ($admin[$source['pass_column']] ?? '');
+                    $hashGuardado = isset($admin[$source['pass_col']]) ? (string) $admin[$source['pass_col']] : '';
 
                     if ($hashGuardado !== '' && password_verify($contrasena, $hashGuardado)) {
                         $credenciales_validas = true;
                     } elseif ($hashGuardado !== '' && hash_equals($hashGuardado, md5($contrasena))) {
                         $credenciales_validas = true;
-                        $nuevoHash = password_hash($contrasena, PASSWORD_DEFAULT);
-                        $update = $conn->prepare(sprintf(
-                            'UPDATE %s SET %s = :contrasena WHERE %s = :id',
-                            $source['table'],
-                            $source['pass_column'],
-                            $source['id_column']
-                        ));
-                        $update->bindParam(':contrasena', $nuevoHash);
-                        $update->bindParam(':id', $admin[$source['id_column']], PDO::PARAM_INT);
-                        $update->execute();
                     } elseif ($hashGuardado !== '' && hash_equals($hashGuardado, $contrasena)) {
-                        // Compatibilidad para datos antiguos en texto plano.
                         $credenciales_validas = true;
+                    }
+
+                    if ($credenciales_validas) {
                         $nuevoHash = password_hash($contrasena, PASSWORD_DEFAULT);
-                        $update = $conn->prepare(sprintf(
+                        $updateSql = sprintf(
                             'UPDATE %s SET %s = :contrasena WHERE %s = :id',
                             $source['table'],
-                            $source['pass_column'],
-                            $source['id_column']
-                        ));
+                            $source['pass_col'],
+                            $source['id_col']
+                        );
+                        $update = $conn->prepare($updateSql);
                         $update->bindParam(':contrasena', $nuevoHash);
-                        $update->bindParam(':id', $admin[$source['id_column']], PDO::PARAM_INT);
+                        $update->bindParam(':id', $admin[$source['id_col']], PDO::PARAM_INT);
                         $update->execute();
                     }
                 }
