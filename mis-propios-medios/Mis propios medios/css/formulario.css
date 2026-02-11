@@ -63,3 +63,41 @@ form button:hover {
   text-align: left;
   font-size: 0.9em;
 }
+
+.cuenta-box {
+  width: 90%;
+  margin: 8px auto 0;
+  padding: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  text-align: left;
+  background: #fafafa;
+}
+
+.crear-cuenta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.9em;
+}
+
+.crear-cuenta input[type='checkbox'] {
+  width: auto;
+  margin: 0;
+}
+
+.cuenta-ayuda {
+  margin: 8px 0;
+  font-size: 0.85em;
+  color: #4b5563;
+}
+
+.ir-login {
+  display: inline-block;
+  text-decoration: none;
+  background: #2563eb;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.85em;
+}
