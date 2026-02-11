@@ -36,6 +36,38 @@ $stmt->execute();
 $accesorios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $itemsEnCarrito = array_sum($_SESSION['cart']);
+
+
+$imagenesPorDefecto = [
+    1 => 'img/maquina.jfif',
+    2 => 'img/patron.jfif',
+    3 => 'img/medidas.jfif',
+];
+
+function resolverImagenAccesorio(array $item, array $imagenesPorDefecto): string
+{
+    $raw = trim((string) ($item['imagen'] ?? ''));
+
+    if ($raw !== '') {
+        $normalizada = str_replace('\\', '/', $raw);
+        $basename = basename($normalizada);
+        if ($basename !== '' && is_file(__DIR__ . '/img/' . $basename)) {
+            return 'img/' . $basename;
+        }
+
+        if (preg_match('#^img/#i', $normalizada) && is_file(__DIR__ . '/' . $normalizada)) {
+            return $normalizada;
+        }
+    }
+
+    $id = (int) ($item['id'] ?? 0);
+    if (isset($imagenesPorDefecto[$id]) && is_file(__DIR__ . '/' . $imagenesPorDefecto[$id])) {
+        return $imagenesPorDefecto[$id];
+    }
+
+    return 'img/mujer.jfif';
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -65,6 +97,8 @@ $itemsEnCarrito = array_sum($_SESSION['cart']);
 
     <?php foreach ($accesorios as $item): ?>
       <article class="card">
+        <?php $imagen = resolverImagenAccesorio($item, $imagenesPorDefecto); ?>
+        <img src="<?= e($imagen) ?>" alt="<?= e((string) $item['nombre']) ?>" class="producto-img">
         <h2><?= e((string) $item['nombre']) ?></h2>
         <p class="descripcion"><?= e((string) ($item['descripcion'] ?? 'Sin descripción')) ?></p>
         <p class="precio">$ <?= e(number_format((float) $item['precio'], 0, ',', '.')) ?></p>
