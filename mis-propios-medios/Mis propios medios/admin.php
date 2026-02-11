@@ -39,6 +39,7 @@ $csrf = csrf_token();
       <th>Correo</th>
       <th>Teléfono</th>
       <th>Lugar</th>
+      <th>Servicio</th>
       <th>Descripción</th>
       <th>Fecha de registro</th>
       <th>Acciones</th>
@@ -54,6 +55,7 @@ $csrf = csrf_token();
           <td><?= e((string) $fila['correo']) ?></td>
           <td><?= e((string) $fila['telefono']) ?></td>
           <td><?= e((string) $fila['lugar']) ?></td>
+          <td><?= e((string) ($fila['servicio'] ?? '')) ?></td>
           <td><?= e((string) $fila['descripcion']) ?></td>
           <td><?= e((string) $fila['fecha_registro']) ?></td>
           <td class="acciones">
@@ -68,7 +70,7 @@ $csrf = csrf_token();
         </tr>
       <?php endforeach; ?>
     <?php else: ?>
-      <tr><td colspan="10">No hay citas registradas aún.</td></tr>
+      <tr><td colspan="11">No hay citas registradas aún.</td></tr>
     <?php endif; ?>
   </table>
 
