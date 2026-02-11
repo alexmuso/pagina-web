@@ -5,6 +5,7 @@ ensure_session_started();
 $errores = $_SESSION['form_errors'] ?? [];
 $success = $_SESSION['success_message'] ?? '';
 $old = $_SESSION['old_form'] ?? [];
+$csrf = csrf_token();
 unset($_SESSION['form_errors'], $_SESSION['success_message']);
 ?>
 <!DOCTYPE html>
@@ -23,6 +24,8 @@ unset($_SESSION['form_errors'], $_SESSION['success_message']);
     <?php if (!empty($success)): ?>
       <p class="success"><?= e($success) ?></p>
     <?php endif; ?>
+
+    <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
 
     <?php if (!empty($errores)): ?>
       <div class="errors">
