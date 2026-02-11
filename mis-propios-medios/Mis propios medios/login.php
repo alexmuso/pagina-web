@@ -45,7 +45,6 @@ function resolveAuthSource(PDO $conn): ?array
                 'extra_where' => '',
             ];
         }
-    }
 
     if ($tableExists('usuarios') && $columnExists('usuarios', 'usuario') && $columnExists('usuarios', 'clave')) {
         $extra = $columnExists('usuarios', 'rol') ? ' AND rol = "admin"' : '';
