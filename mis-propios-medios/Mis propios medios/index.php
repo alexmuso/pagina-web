@@ -14,7 +14,7 @@
     <h1>Arreglos y confecciones Felicias</h1>
     <nav>
       <ul>
-        <li><a href="login.php">Administrador</a></li>
+        <li><a href="login.php">Iniciar sesión</a></li>
         <li><a href="#inicio">Inicio</a></li>
         <li><a href="#servicios">Servicios</a></li>
         <li><a href="#contacto">Contacto</a></li>
