@@ -44,7 +44,7 @@
       <i class="fa-solid fa-gem"></i>
       <h3>Accesorios</h3>
       <p>Bolsos y detalles únicos que acompañan tu estilo.</p>
-      <button onclick="window.location.href='formulario.php'">Agendar</button>
+      <button onclick="window.location.href='catalogo_accesorios.php'">Ver catálogo</button>
     </div>
   </section>
 

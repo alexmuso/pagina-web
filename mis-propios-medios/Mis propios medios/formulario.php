@@ -5,6 +5,7 @@ ensure_session_started();
 $errores = $_SESSION['form_errors'] ?? [];
 $success = $_SESSION['success_message'] ?? '';
 $old = $_SESSION['old_form'] ?? [];
+$csrf = csrf_token();
 unset($_SESSION['form_errors'], $_SESSION['success_message']);
 ?>
 <!DOCTYPE html>
@@ -24,6 +25,8 @@ unset($_SESSION['form_errors'], $_SESSION['success_message']);
       <p class="success"><?= e($success) ?></p>
     <?php endif; ?>
 
+    <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
+
     <?php if (!empty($errores)): ?>
       <div class="errors">
         <?php foreach ($errores as $error): ?>
@@ -42,6 +45,14 @@ unset($_SESSION['form_errors'], $_SESSION['success_message']);
     <select name="lugar" id="lugar">
       <option value="local" <?= (($old['lugar'] ?? '') === 'local') ? 'selected' : '' ?>>En el local</option>
       <option value="domicilio" <?= (($old['lugar'] ?? '') === 'domicilio') ? 'selected' : '' ?>>A domicilio</option>
+    </select>
+
+
+    <label for="servicio">Servicio</label>
+    <select name="servicio" id="servicio" required>
+      <option value="arreglo" <?= (($old['servicio'] ?? '') === 'arreglo') ? 'selected' : '' ?>>Arreglo</option>
+      <option value="confeccion" <?= (($old['servicio'] ?? '') === 'confeccion') ? 'selected' : '' ?>>Confección</option>
+      <option value="accesorios" <?= (($old['servicio'] ?? '') === 'accesorios') ? 'selected' : '' ?>>Accesorios</option>
     </select>
 
     <textarea name="descripcion" placeholder="Descripción de lo que necesitas"><?= e((string)($old['descripcion'] ?? '')) ?></textarea>
