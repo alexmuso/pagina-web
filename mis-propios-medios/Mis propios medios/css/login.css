@@ -85,6 +85,35 @@ form {
   font-size: 14px;
 }
 
+.tipo-acceso {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.tipo-acceso a {
+  margin-top: 0;
+  text-decoration: none;
+  color: #555;
+  border: 1px solid #ddd;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.tipo-acceso a.activo {
+  background: #e91e63;
+  color: #fff;
+  border-color: #e91e63;
+}
+
+.subtitulo {
+  margin: 10px 0 0;
+  color: #555;
+  font-size: 14px;
+}
+
 input {
   width: 90%;
   padding: 10px;
