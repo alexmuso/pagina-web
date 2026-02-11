@@ -7,29 +7,54 @@ ensure_session_started();
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
+if (!isset($_SESSION['cart_snapshot'])) {
+    $_SESSION['cart_snapshot'] = [];
+}
 
 $ids = array_keys($_SESSION['cart']);
 $items = [];
 $total = 0;
+$rowsById = [];
 
 if (count($ids) > 0) {
-    $placeholders = implode(',', array_fill(0, count($ids), '?'));
-    $sql = "SELECT id, nombre, precio FROM accesorios WHERE id IN ($placeholders)";
-    $stmt = $conn->prepare($sql);
-    $stmt->execute($ids);
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    try {
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $sql = "SELECT id, nombre, precio FROM accesorios WHERE id IN ($placeholders)";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($ids);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    foreach ($rows as $row) {
-        $id = (int) $row['id'];
+        foreach ($rows as $row) {
+            $rowsById[(int) $row['id']] = $row;
+        }
+    } catch (PDOException $e) {
+        // Si falla la BD, se usan datos guardados en sesión.
+    }
+
+    foreach ($ids as $idCart) {
+        $id = (int) $idCart;
         $cantidad = (int) ($_SESSION['cart'][$id] ?? 0);
         if ($cantidad <= 0) {
             continue;
         }
-        $subtotal = $cantidad * (float) $row['precio'];
+
+        if (isset($rowsById[$id])) {
+            $nombre = (string) $rowsById[$id]['nombre'];
+            $precio = (float) $rowsById[$id]['precio'];
+        } else {
+            $snapshot = $_SESSION['cart_snapshot'][$id] ?? null;
+            if (!is_array($snapshot)) {
+                continue;
+            }
+            $nombre = (string) ($snapshot['nombre'] ?? 'Producto');
+            $precio = (float) ($snapshot['precio'] ?? 0);
+        }
+
+        $subtotal = $cantidad * $precio;
         $total += $subtotal;
         $items[] = [
-            'nombre' => $row['nombre'],
-            'precio' => (float) $row['precio'],
+            'nombre' => $nombre,
+            'precio' => $precio,
             'cantidad' => $cantidad,
             'subtotal' => $subtotal,
         ];
@@ -80,7 +105,7 @@ $fecha = date('Y-m-d H:i:s');
 
       <p class="total">Total factura: $ <?= e(number_format($total, 0, ',', '.')) ?></p>
       <p class="nota">Gracias por tu compra.</p>
-      <?php $_SESSION['cart'] = []; ?>
+      <?php $_SESSION['cart'] = []; $_SESSION['cart_snapshot'] = []; ?>
 
       <div class="acciones">
         <a class="btn" href="catalogo_accesorios.php">Volver al catálogo</a>
@@ -88,5 +113,10 @@ $fecha = date('Y-m-d H:i:s');
       </div>
     <?php endif; ?>
   </main>
+  <footer class="site-footer" id="contacto">
+    <p><i>📍</i> Calle 123, Bogotá</p>
+    <p><i>📞</i> +57 300 123 4567</p>
+    <p><i>✉️</i> contacto@mi-boutique.com</p>
+  </footer>
 </body>
 </html>

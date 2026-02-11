@@ -17,6 +17,12 @@ unset($_SESSION['form_errors'], $_SESSION['success_message']);
   <link rel="stylesheet" href="css/formulario.css">
 </head>
 <body>
+  <header class="site-header">
+    <img src="img/logo.jpeg" alt="Logo Boutique">
+    <h1>Arreglos y confecciones Felicias</h1>
+    <nav><ul><li><a href="index.php">Inicio</a></li><li><a href="login.php">Iniciar sesión</a></li></ul></nav>
+  </header>
+  <main class="form-wrap">
   <form method="post" action="recibir.php">
     <img src="img/logo.jpeg" alt="Logo Boutique" class="logo">
     <h2>Agendar cita</h2>
@@ -39,6 +45,7 @@ unset($_SESSION['form_errors'], $_SESSION['success_message']);
     <input type="text" name="nombre" placeholder="Nombre" value="<?= e((string)($old['nombre'] ?? '')) ?>" required>
     <input type="text" name="apellido" placeholder="Apellido" value="<?= e((string)($old['apellido'] ?? '')) ?>" required>
     <input type="email" name="correo" placeholder="Correo electrónico" value="<?= e((string)($old['correo'] ?? '')) ?>" required>
+    <input type="password" name="clave" placeholder="Crea una contraseña para tu cuenta" minlength="6" value="<?= e((string)($old['clave'] ?? '')) ?>" required>
     <input type="tel" name="telefono" placeholder="Teléfono" value="<?= e((string)($old['telefono'] ?? '')) ?>" required>
 
     <label for="lugar">¿Dónde quieres tu cita?</label>
@@ -57,8 +64,23 @@ unset($_SESSION['form_errors'], $_SESSION['success_message']);
 
     <textarea name="descripcion" placeholder="Descripción de lo que necesitas"><?= e((string)($old['descripcion'] ?? '')) ?></textarea>
 
+
+    <div class="cuenta-box"> 
+      <label class="crear-cuenta"> 
+        <input type="checkbox" name="crear_usuario" value="1" <?= (($old['crear_usuario'] ?? '1') === '1') ? 'checked' : '' ?>>
+        Crear usuario automáticamente con estos datos
+      </label>
+      <p class="cuenta-ayuda">Si ya tienes cuenta, puedes iniciar sesión y continuar.</p>
+      <a class="ir-login" href="login.php?tipo=usuario">Iniciar sesión</a>
+    </div>
     <button type="submit">Enviar</button>
     <a class="volver" href="index.php">Volver</a>
   </form>
+  </main>
+  <footer class="site-footer" id="contacto">
+    <p> <i>📍</i> Calle 123, Bogotá</p>
+    <p> <i>📞</i> +57 300 123 4567</p>
+    <p> <i>✉️</i> contacto@mi-boutique.com</p>
+  </footer>
 </body>
 </html>
