@@ -24,6 +24,7 @@ $telefono = trim($_POST['telefono'] ?? '');
 $lugar = trim($_POST['lugar'] ?? '');
 $descripcion = trim($_POST['descripcion'] ?? '');
 $servicio = trim($_POST['servicio'] ?? '');
+$crearUsuario = (isset($_POST['crear_usuario']) && $_POST['crear_usuario'] === '1');
 
 $errores = [];
 
@@ -59,6 +60,25 @@ if (!empty($errores)) {
     exit;
 }
 
+
+function generar_usuario_sugerido(string $nombre, string $correo, string $documento): string
+{
+    $base = strtolower(trim((string) strstr($correo, '@', true)));
+    if ($base === '') {
+        $base = strtolower(preg_replace('/[^a-z0-9]/i', '', $nombre));
+    }
+    if ($base === '') {
+        $base = 'cliente';
+    }
+
+    $base = preg_replace('/[^a-z0-9_]/', '', $base);
+    if ($base === null || $base === '') {
+        $base = 'cliente';
+    }
+
+    return substr($base, 0, 20) . substr($documento, -4);
+}
+
 try {
     $sql = 'INSERT INTO citas (documento, nombre, apellido, correo, telefono, lugar, descripcion, servicio)
             VALUES (:documento, :nombre, :apellido, :correo, :telefono, :lugar, :descripcion, :servicio)';
@@ -75,7 +95,42 @@ try {
 
     $stmt->execute();
 
-    $_SESSION['success_message'] = '🎉 Cita registrada exitosamente. Gracias ' . $nombre . ' ' . $apellido . ', te contactaremos pronto.';
+    $mensajeCuenta = '';
+
+    if ($crearUsuario) {
+        try {
+            $usuarioGenerado = generar_usuario_sugerido($nombre, $correo, $documento);
+            $stmtExiste = $conn->prepare('SELECT id, usuario FROM usuarios WHERE correo = :correo OR usuario = :usuario LIMIT 1');
+            $stmtExiste->bindParam(':correo', $correo);
+            $stmtExiste->bindParam(':usuario', $usuarioGenerado);
+            $stmtExiste->execute();
+            $existente = $stmtExiste->fetch(PDO::FETCH_ASSOC);
+
+            if ($existente) {
+                $mensajeCuenta = ' Ya existe una cuenta relacionada. Puedes iniciar sesión con tu usuario actual.';
+            } else {
+                $claveTemporalPlano = $documento;
+                $claveTemporalHash = password_hash($claveTemporalPlano, PASSWORD_DEFAULT);
+                $nombreCompleto = trim($nombre . ' ' . $apellido);
+                $rol = 'cliente';
+
+                $sqlUsuario = 'INSERT INTO usuarios (nombre, usuario, correo, clave, rol) VALUES (:nombre, :usuario, :correo, :clave, :rol)';
+                $stmtUsuario = $conn->prepare($sqlUsuario);
+                $stmtUsuario->bindParam(':nombre', $nombreCompleto);
+                $stmtUsuario->bindParam(':usuario', $usuarioGenerado);
+                $stmtUsuario->bindParam(':correo', $correo);
+                $stmtUsuario->bindParam(':clave', $claveTemporalHash);
+                $stmtUsuario->bindParam(':rol', $rol);
+                $stmtUsuario->execute();
+
+                $mensajeCuenta = ' Usuario creado: ' . $usuarioGenerado . '. Contraseña temporal: tu número de documento. Inicia sesión y cámbiala luego.';
+            }
+        } catch (PDOException $e) {
+            $mensajeCuenta = ' No fue posible crear la cuenta automáticamente, pero tu cita sí quedó registrada.';
+        }
+    }
+
+    $_SESSION['success_message'] = '🎉 Cita registrada exitosamente. Gracias ' . $nombre . ' ' . $apellido . ', te contactaremos pronto.' . $mensajeCuenta;
     unset($_SESSION['old_form'], $_SESSION['form_errors']);
     header('Location: formulario.php?ok=1');
     exit;

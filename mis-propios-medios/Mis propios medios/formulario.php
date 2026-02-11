@@ -57,6 +57,15 @@ unset($_SESSION['form_errors'], $_SESSION['success_message']);
 
     <textarea name="descripcion" placeholder="Descripción de lo que necesitas"><?= e((string)($old['descripcion'] ?? '')) ?></textarea>
 
+
+    <div class="cuenta-box"> 
+      <label class="crear-cuenta"> 
+        <input type="checkbox" name="crear_usuario" value="1" <?= (($old['crear_usuario'] ?? '1') === '1') ? 'checked' : '' ?>>
+        Crear usuario automáticamente con estos datos
+      </label>
+      <p class="cuenta-ayuda">Si ya tienes cuenta, puedes iniciar sesión y continuar.</p>
+      <a class="ir-login" href="login.php?tipo=usuario">Iniciar sesión</a>
+    </div>
     <button type="submit">Enviar</button>
     <a class="volver" href="index.php">Volver</a>
   </form>
