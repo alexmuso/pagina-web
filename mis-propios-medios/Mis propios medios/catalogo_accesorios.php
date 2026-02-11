@@ -11,38 +11,34 @@ if (!isset($_SESSION['cart'])) {
 
 $mensaje = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!validate_csrf_token($_POST['csrf_token'] ?? null)) {
-        $mensaje = 'Sesión inválida. Recarga la página.';
-    } else {
-        $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
-        $cantidad = filter_input(INPUT_POST, 'cantidad', FILTER_VALIDATE_INT);
-
-        if ($id && $cantidad && $cantidad > 0) {
-            if (!isset($_SESSION['cart'][$id])) {
-                $_SESSION['cart'][$id] = 0;
-            }
-            $_SESSION['cart'][$id] += $cantidad;
-            $mensaje = 'Accesorio agregado al carrito.';
-        } else {
-            $mensaje = 'Datos inválidos para agregar al carrito.';
-        }
-    }
-}
-
-$sql = 'SELECT id, nombre, descripcion, precio, imagen FROM accesorios ORDER BY id ASC';
-$stmt = $conn->prepare($sql);
-$stmt->execute();
-$accesorios = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-$itemsEnCarrito = array_sum($_SESSION['cart']);
-
-
 $imagenesPorDefecto = [
     1 => 'img/maquina.jfif',
     2 => 'img/patron.jfif',
     3 => 'img/medidas.jfif',
 ];
+
+/**
+ * Si la tabla accesorios está vacía, inserta un catálogo base usando imágenes locales.
+ */
+function poblarCatalogoInicial(PDO $conn): void
+{
+    $semilla = [
+        ['Bolso elegante', 'Bolso elegante para uso diario.', 85000, 'img/maquina.jfif'],
+        ['Monedero artesanal', 'Monedero compacto hecho a mano.', 25000, 'img/patron.jfif'],
+        ['Aretes de perlas', 'Aretes clásicos para ocasiones especiales.', 18000, 'img/medidas.jfif'],
+    ];
+
+    $insert = $conn->prepare('INSERT INTO accesorios (nombre, descripcion, precio, stock, imagen) VALUES (:nombre, :descripcion, :precio, :stock, :imagen)');
+    foreach ($semilla as $item) {
+        $insert->execute([
+            ':nombre' => $item[0],
+            ':descripcion' => $item[1],
+            ':precio' => $item[2],
+            ':stock' => 10,
+            ':imagen' => $item[3],
+        ]);
+    }
+}
 
 function resolverImagenAccesorio(array $item, array $imagenesPorDefecto): string
 {
@@ -68,6 +64,45 @@ function resolverImagenAccesorio(array $item, array $imagenesPorDefecto): string
     return 'img/mujer.jfif';
 }
 
+try {
+    $sql = 'SELECT id, nombre, descripcion, precio, imagen FROM accesorios ORDER BY id ASC';
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $accesorios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (count($accesorios) === 0) {
+        poblarCatalogoInicial($conn);
+        $stmt->execute();
+        $accesorios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $mensaje = 'Se cargó un catálogo base de accesorios.';
+    }
+} catch (PDOException $e) {
+    $accesorios = [];
+    $mensaje = 'No fue posible cargar los accesorios. Verifica la base de datos.';
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!validate_csrf_token($_POST['csrf_token'] ?? null)) {
+        $mensaje = 'Sesión inválida. Recarga la página.';
+    } else {
+        $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+        $cantidad = filter_input(INPUT_POST, 'cantidad', FILTER_VALIDATE_INT);
+
+        $idsValidos = array_map(static fn(array $item): int => (int) $item['id'], $accesorios);
+
+        if ($id && $cantidad && $cantidad > 0 && in_array($id, $idsValidos, true)) {
+            if (!isset($_SESSION['cart'][$id])) {
+                $_SESSION['cart'][$id] = 0;
+            }
+            $_SESSION['cart'][$id] += $cantidad;
+            $mensaje = 'Accesorio agregado al carrito.';
+        } else {
+            $mensaje = 'Datos inválidos para agregar al carrito.';
+        }
+    }
+}
+
+$itemsEnCarrito = array_sum($_SESSION['cart']);
 ?>
 <!DOCTYPE html>
 <html lang="es">
