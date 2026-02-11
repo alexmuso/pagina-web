@@ -6,16 +6,22 @@ ensure_session_started();
 $csrf = csrf_token();
 
 /**
- * Devuelve la configuración de autenticación detectada en la BD o null si no hay una válida.
+ * Devuelve la configuración de autenticación detectada para administradores o usuarios.
  */
-function detect_auth_source($conn)
+function detect_auth_source($conn, $tipo)
 {
-    $candidates = [
-        ['table' => 'admin', 'user_col' => 'usuario', 'pass_col' => 'contrasena', 'id_col' => 'id', 'where' => ''],
-        ['table' => 'admin', 'user_col' => 'usuario', 'pass_col' => 'clave', 'id_col' => 'id', 'where' => ''],
-        ['table' => 'usuarios', 'user_col' => 'usuario', 'pass_col' => 'clave', 'id_col' => 'id', 'where' => " AND rol = 'admin'"],
-        ['table' => 'usuarios', 'user_col' => 'usuario', 'pass_col' => 'clave', 'id_col' => 'id', 'where' => ''],
-    ];
+    if ($tipo === 'usuario') {
+        $candidates = [
+            ['table' => 'usuarios', 'user_col' => 'usuario', 'pass_col' => 'clave', 'id_col' => 'id', 'where' => " AND rol = 'cliente'"],
+            ['table' => 'usuarios', 'user_col' => 'usuario', 'pass_col' => 'clave', 'id_col' => 'id', 'where' => ''],
+        ];
+    } else {
+        $candidates = [
+            ['table' => 'admin', 'user_col' => 'usuario', 'pass_col' => 'contrasena', 'id_col' => 'id', 'where' => ''],
+            ['table' => 'admin', 'user_col' => 'usuario', 'pass_col' => 'clave', 'id_col' => 'id', 'where' => ''],
+            ['table' => 'usuarios', 'user_col' => 'usuario', 'pass_col' => 'clave', 'id_col' => 'id', 'where' => " AND rol = 'admin'"],
+        ];
+    }
 
     foreach ($candidates as $source) {
         $probeSql = sprintf(
@@ -36,19 +42,31 @@ function detect_auth_source($conn)
     return null;
 }
 
+$tipo = isset($_GET['tipo']) ? $_GET['tipo'] : 'admin';
+if ($tipo !== 'admin' && $tipo !== 'usuario') {
+    $tipo = 'admin';
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validate_csrf_token(isset($_POST['csrf_token']) ? $_POST['csrf_token'] : null)) {
         http_response_code(403);
         $error = 'Sesión inválida. Recarga la página e inténtalo de nuevo.';
     } else {
+        $tipo = isset($_POST['tipo']) ? $_POST['tipo'] : 'admin';
+        if ($tipo !== 'admin' && $tipo !== 'usuario') {
+            $tipo = 'admin';
+        }
+
         $usuario = trim(isset($_POST['usuario']) ? $_POST['usuario'] : '');
         $contrasena = isset($_POST['contrasena']) ? $_POST['contrasena'] : '';
 
         try {
-            $source = detect_auth_source($conn);
+            $source = detect_auth_source($conn, $tipo);
 
             if ($source === null) {
-                $error = 'No se encontró una tabla de usuarios administradores. Verifica la base de datos.';
+                $error = $tipo === 'admin'
+                    ? 'No se encontró una tabla de usuarios administradores. Verifica la base de datos.'
+                    : 'No se encontró una tabla de usuarios clientes. Verifica la base de datos.';
             } else {
                 $sql = sprintf(
                     'SELECT * FROM %s WHERE %s = :usuario%s LIMIT 1',
@@ -61,11 +79,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->bindParam(':usuario', $usuario);
                 $stmt->execute();
 
-                $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+                $cuenta = $stmt->fetch(PDO::FETCH_ASSOC);
                 $credenciales_validas = false;
 
-                if ($admin) {
-                    $hashGuardado = isset($admin[$source['pass_col']]) ? (string) $admin[$source['pass_col']] : '';
+                if ($cuenta) {
+                    $hashGuardado = isset($cuenta[$source['pass_col']]) ? (string) $cuenta[$source['pass_col']] : '';
 
                     if ($hashGuardado !== '' && password_verify($contrasena, $hashGuardado)) {
                         $credenciales_validas = true;
@@ -85,15 +103,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         );
                         $update = $conn->prepare($updateSql);
                         $update->bindParam(':contrasena', $nuevoHash);
-                        $update->bindParam(':id', $admin[$source['id_col']], PDO::PARAM_INT);
+                        $update->bindParam(':id', $cuenta[$source['id_col']], PDO::PARAM_INT);
                         $update->execute();
                     }
                 }
 
                 if ($credenciales_validas) {
                     session_regenerate_id(true);
-                    $_SESSION['admin'] = $usuario;
-                    header('Location: admin.php');
+
+                    if ($tipo === 'admin') {
+                        $_SESSION['admin'] = $usuario;
+                        unset($_SESSION['usuario']);
+                        header('Location: admin.php');
+                    } else {
+                        $_SESSION['usuario'] = $usuario;
+                        unset($_SESSION['admin']);
+                        header('Location: catalogo_accesorios.php');
+                    }
+
                     exit;
                 }
 
@@ -110,16 +137,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Iniciar Sesión - Boutique</title>
+  <title>Iniciar sesión - Boutique</title>
   <link rel="stylesheet" href="css/login.css">
 </head>
 <body>
   <form method="POST" action="">
     <h2>🔐 Iniciar sesión</h2>
+
+    <div class="tipo-acceso">
+      <a class="<?= $tipo === 'admin' ? 'activo' : '' ?>" href="login.php?tipo=admin">Administrador</a>
+      <a class="<?= $tipo === 'usuario' ? 'activo' : '' ?>" href="login.php?tipo=usuario">Usuario</a>
+    </div>
+
     <?php if (!empty($error)): ?>
       <p class="error"><?= e($error) ?></p>
     <?php endif; ?>
+
+    <p class="subtitulo">
+      <?= $tipo === 'admin' ? 'Ingresa como administrador.' : 'Ingresa como usuario.' ?>
+    </p>
+
     <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
+    <input type="hidden" name="tipo" value="<?= e($tipo) ?>">
     <input type="text" name="usuario" placeholder="Usuario" required>
     <input type="password" name="contrasena" placeholder="Contraseña" required>
     <button type="submit">Entrar</button>

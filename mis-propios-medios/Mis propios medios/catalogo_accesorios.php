@@ -8,6 +8,9 @@ $csrf = csrf_token();
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
+if (!isset($_SESSION['cart_snapshot'])) {
+    $_SESSION['cart_snapshot'] = [];
+}
 
 $mensaje = '';
 
@@ -23,6 +26,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['cart'][$id] = 0;
             }
             $_SESSION['cart'][$id] += $cantidad;
+
+            $nombreItem = trim((string) ($_POST['nombre'] ?? 'Producto'));
+            $precioItem = filter_input(INPUT_POST, 'precio', FILTER_VALIDATE_FLOAT);
+
+            if ($precioItem !== false && $precioItem !== null && $precioItem >= 0) {
+                $_SESSION['cart_snapshot'][$id] = [
+                    'nombre' => $nombreItem !== '' ? $nombreItem : 'Producto',
+                    'precio' => (float) $precioItem,
+                ];
+            }
+
             $mensaje = 'Accesorio agregado al carrito.';
         } else {
             $mensaje = 'Datos inválidos para agregar al carrito.';
@@ -30,13 +44,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$sql = 'SELECT id, nombre, descripcion, precio, imagen FROM accesorios ORDER BY id ASC';
-$stmt = $conn->prepare($sql);
-$stmt->execute();
-$accesorios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$accesorios = [];
+$errorCatalogo = '';
+
+try {
+    $sql = 'SELECT id, nombre, descripcion, precio, imagen, stock FROM accesorios ORDER BY id ASC';
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $accesorios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $errorCatalogo = 'No se pudo cargar la base de datos. Mostrando catálogo de ejemplo.';
+}
+
+if (count($accesorios) === 0) {
+    $accesorios = [
+        ['id' => 1, 'nombre' => 'Bolso elegante', 'descripcion' => 'Bolso de mano para eventos especiales.', 'precio' => 85000, 'imagen' => 'img/maquina.jfif', 'stock' => 5],
+        ['id' => 2, 'nombre' => 'Monedero artesanal', 'descripcion' => 'Monedero compacto con acabado artesanal.', 'precio' => 25000, 'imagen' => 'img/patron.jfif', 'stock' => 8],
+        ['id' => 3, 'nombre' => 'Aretes de perlas', 'descripcion' => 'Aretes clásicos para complementar tu estilo.', 'precio' => 18000, 'imagen' => 'img/medidas.jfif', 'stock' => 12],
+    ];
+}
 
 $itemsEnCarrito = array_sum($_SESSION['cart']);
-
 
 $imagenesPorDefecto = [
     1 => 'img/maquina.jfif',
@@ -90,15 +118,24 @@ function resolverImagenAccesorio(array $item, array $imagenesPorDefecto): string
     <p class="mensaje"><?= e($mensaje) ?></p>
   <?php endif; ?>
 
-  <main class="grid">
-    <?php if (count($accesorios) === 0): ?>
-      <p>No hay accesorios disponibles por ahora.</p>
-    <?php endif; ?>
+  <?php if ($errorCatalogo !== ''): ?>
+    <p class="mensaje aviso"><?= e($errorCatalogo) ?></p>
+  <?php endif; ?>
 
+  <main class="grid">
     <?php foreach ($accesorios as $item): ?>
-      <article class="card">
-        <?php $imagen = resolverImagenAccesorio($item, $imagenesPorDefecto); ?>
-        <img src="<?= e($imagen) ?>" alt="<?= e((string) $item['nombre']) ?>" class="producto-img">
+      <?php
+        $imagen = resolverImagenAccesorio($item, $imagenesPorDefecto);
+        $stock = (int) ($item['stock'] ?? 0);
+      ?>
+      <article class="card producto-card">
+        <div class="img-wrap">
+          <img src="<?= e($imagen) ?>" alt="<?= e((string) $item['nombre']) ?>" class="producto-img">
+          <span class="etiqueta-stock <?= $stock > 0 ? 'ok' : 'agotado' ?>">
+            <?= $stock > 0 ? 'Disponible' : 'Agotado' ?>
+          </span>
+        </div>
+
         <h2><?= e((string) $item['nombre']) ?></h2>
         <p class="descripcion"><?= e((string) ($item['descripcion'] ?? 'Sin descripción')) ?></p>
         <p class="precio">$ <?= e(number_format((float) $item['precio'], 0, ',', '.')) ?></p>
@@ -106,9 +143,11 @@ function resolverImagenAccesorio(array $item, array $imagenesPorDefecto): string
         <form method="POST" action="">
           <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
           <input type="hidden" name="id" value="<?= e((string) $item['id']) ?>">
+          <input type="hidden" name="nombre" value="<?= e((string) $item['nombre']) ?>">
+          <input type="hidden" name="precio" value="<?= e((string) $item['precio']) ?>">
           <label>Cantidad</label>
-          <input type="number" name="cantidad" min="1" max="10" value="1" required>
-          <button type="submit">Agregar al carrito</button>
+          <input type="number" name="cantidad" min="1" max="10" value="1" required <?= $stock <= 0 ? 'disabled' : '' ?>>
+          <button type="submit" <?= $stock <= 0 ? 'disabled' : '' ?>>Agregar al carrito</button>
         </form>
       </article>
     <?php endforeach; ?>
