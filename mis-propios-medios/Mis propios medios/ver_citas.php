@@ -30,6 +30,7 @@ $csrf = csrf_token();
       <th>Correo</th>
       <th>Teléfono</th>
       <th>Lugar</th>
+      <th>Servicio</th>
       <th>Descripción</th>
       <th>Fecha registro</th>
       <th>Acciones</th>
@@ -44,6 +45,7 @@ $csrf = csrf_token();
         <td><?= e((string) $cita['correo']) ?></td>
         <td><?= e((string) $cita['telefono']) ?></td>
         <td><?= e((string) $cita['lugar']) ?></td>
+        <td><?= e((string) ($cita['servicio'] ?? '')) ?></td>
         <td><?= e((string) $cita['descripcion']) ?></td>
         <td><?= e((string) $cita['fecha_registro']) ?></td>
         <td class="acciones">
