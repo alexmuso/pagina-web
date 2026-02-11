@@ -37,6 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if ($credenciales_validas) {
+            session_regenerate_id(true);
             $_SESSION['admin'] = $usuario;
             header('Location: admin.php');
             exit;

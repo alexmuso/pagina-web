@@ -9,6 +9,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+
+if (!validate_csrf_token($_POST['csrf_token'] ?? null)) {
+    $_SESSION['form_errors'] = ['Sesión inválida. Recarga la página e inténtalo de nuevo.'];
+    $_SESSION['old_form'] = $_POST;
+    header('Location: formulario.php');
+    exit;
+}
 $documento = trim($_POST['documento'] ?? '');
 $nombre = trim($_POST['nombre'] ?? '');
 $apellido = trim($_POST['apellido'] ?? '');
